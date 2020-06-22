@@ -87,7 +87,7 @@ rm frontend_image.tar
 docker build -f jetson-nano.Dockerfile -t "neuralet/smart-social-distancing:latest-jetson-nano" .
 
 # 3) Run Docker container:
-docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-jetson-nano
+docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data -v "$PWD/config-jetson.ini":/repo/config-jetson.ini neuralet/smart-social-distancing:latest-jetson-nano
 ```
 
 **Run on Jetson TX2**
@@ -101,7 +101,7 @@ docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/r
 docker build -f jetson-tx2.Dockerfile -t "neuralet/smart-social-distancing:latest-jetson-tx2" .
 
 # 3) Run Docker container:
-docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-jetson-tx2
+docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data -v "$PWD/config-jetson.ini":/repo/config-jetson.ini neuralet/smart-social-distancing:latest-jetson-tx2
 ```
 
 **Run on Coral Dev Board**
@@ -109,7 +109,7 @@ docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/r
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f coral-dev-board.Dockerfile -t "neuralet/smart-social-distancing:latest-coral-dev-board" .
 # 2) Run Docker container:
-docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-coral-dev-board
+docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data -v "$PWD/config-skeleton.ini":/repo/config-skeleton.ini neuralet/smart-social-distancing:latest-coral-dev-board
 ```
 
 **Run on AMD64 node with a connected Coral USB Accelerator**
@@ -117,7 +117,7 @@ docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f amd64-usbtpu.Dockerfile -t "neuralet/smart-social-distancing:latest-amd64" .
 # 2) Run Docker container:
-docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-amd64
+docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data -v "$PWD/config-skeleton.ini":/repo/config-skeleton.ini neuralet/smart-social-distancing:latest-amd64
 ```
 
 **Run on x86**
@@ -125,7 +125,7 @@ docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f x86.Dockerfile -t "neuralet/smart-social-distancing:latest-x86_64" .
 # 2) Run Docker container:
-docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-x86_64
+docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data -v "$PWD/config-x86.ini":/repo/config-x86.ini neuralet/smart-social-distancing:latest-x86_64
 ```
 
 **Run on x86 using OpenVino**
@@ -136,11 +136,12 @@ docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f x86-openvino.Dockerfile -t "neuralet/smart-social-distancing:latest-x86_64_openvino" .
 # 2) Run Docker container:
-docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-x86_64_openvino
+docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data -v "$PWD/config-x86-openvino.ini":/repo/config-x86-openvino.ini neuralet/smart-social-distancing:latest-x86_64_openvino
 ```
 
 ### Configurations
 You can read and modify the configurations in `config-jetson.ini` file for Jetson Nano / TX2 and `config-skeleton.ini` file for Coral.
+Passing the config file to `docker run` as volume allows for the config to be written inside the docker container
 
 Under the `[Detector]` section, you can modify the `Min score` parameter to define the person detection threshold. You can also change the distance threshold by altering the value of `DistThreshold`.
 

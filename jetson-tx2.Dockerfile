@@ -1,7 +1,3 @@
-# Allow change the frontend path for testing things on branch
-ARG frontend_uri=neuralet/smart-social-distancing:latest-frontend
-FROM ${frontend_uri} as fe
-
 # See here for installing Docker for Nvidia on Jetson devices: 
 # https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson
 
@@ -90,6 +86,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fastapi \
         pycuda \
         uvicorn \
+        pyhumps \
     && apt-get purge -y \
         pkg-config \
     && apt-get autoremove -y
@@ -98,7 +95,6 @@ ENV DEV_ALLOW_ALL_ORIGINS=true
 
 WORKDIR /repo
 
-COPY --from=fe /frontend/build /srv/frontend
 COPY . /repo/
 ENTRYPOINT ["bash", "start_services.bash"]
 CMD ["config-jetson.ini"]
