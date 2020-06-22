@@ -28,7 +28,7 @@ class Logger:
 
         os.makedirs(self.objects_log_directory, exist_ok=True)
 
-    def update(self, objects_list, distances):
+    def update(self, objects_list, distances, version):
         """Write the object and violated distances information of a frame into log files.
 
         Args:
@@ -37,9 +37,9 @@ class Logger:
         """
         file_name = str(date.today())
         objects_log_file_path = os.path.join(self.objects_log_directory, file_name + ".csv")
-        self.log_objects(objects_list, distances, objects_log_file_path)
+        self.log_objects(version, objects_list, distances, objects_log_file_path)
 
-    def log_objects(self, objects_list, distances, file_path):
+    def log_objects(self, version, objects_list, distances, file_path):
         """Write objects information of a frame into the object log file.
         Each row of the object log file consist of a detected object (person) information such as
         object (person) ids, bounding box coordinates and frame number.
@@ -50,7 +50,7 @@ class Logger:
             file_path: The path for storing log files
 
         """
-
+        # TODO: Remove violation logic and move it to frontend
         violating_objects = extract_violating_objects(distances, self.dist_threshold)
         # Get the number of violating objects (people)
         no_violating_objects = len(violating_objects)
@@ -63,7 +63,7 @@ class Logger:
         current_time = now.strftime("%Y-%m-%d %H:%M:%S")
         file_exists = os.path.isfile(file_path)
         with open(file_path, "a") as csvfile:
-            headers = ["Timestamp", "DetectedObjects", "ViolatingObjects", "EnvironmentScore"]
+            headers = ["Version", "Timestamp", "DetectedObjects", "ViolatingObjects", "EnvironmentScore", "Detections"]
             writer = csv.DictWriter(csvfile, fieldnames=headers)
 
             if not file_exists:
@@ -71,5 +71,6 @@ class Logger:
 
             writer.writerow(
 
-                {'Timestamp': current_time, 'DetectedObjects': no_detected_objects,
-                 'ViolatingObjects': no_violating_objects, 'EnvironmentScore': environment_score})
+                {'Version': version, 'Timestamp': current_time, 'DetectedObjects': no_detected_objects,
+                 'ViolatingObjects': no_violating_objects, 'EnvironmentScore': environment_score,
+                 'Detections': str(objects_list)})

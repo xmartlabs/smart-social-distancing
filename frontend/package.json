@@ -12,6 +12,7 @@
     "babel-plugin-ramda": "2.0.0",
     "babel-plugin-transform-imports": "2.0.0",
     "customize-cra": "0.9.1",
+    "heatmap.js": "^2.0.5",
     "hls.js": "0.13.2",
     "plotly.js-cartesian-dist": "1.54.1",
     "ramda": "0.27.0",

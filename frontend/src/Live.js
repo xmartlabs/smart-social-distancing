@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {
     Card,
@@ -14,11 +14,12 @@ import {
 } from "@material-ui/core";
 import RefreshIcon from '@material-ui/icons/Refresh';
 import createPlotlyComponent from 'react-plotly.js/factory';
-import Plotly from 'plotly.js-cartesian-dist'
+import Plotly, { dash } from 'plotly.js-cartesian-dist'
 import {mergeDeepLeft} from "ramda";
 import ContainerDimensions from "react-container-dimensions";
 import {Player, BigPlayButton} from 'video-react';
 import HLSSource from './components/HLSSource';
+import h337 from 'heatmap.js';
 import "video-react/dist/video-react.css";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -45,7 +46,7 @@ const useStyle = makeStyles((theme) => ({
 function CameraFeed({cameras}) {
     const classes = useStyle();
     const [time, _] = useState(new Date().toISOString()); // time is appended to live urls to prevent caching
-
+    console.log(cameras ? `${cameras[0].streams[0].src}?${time}` : '');
     return (
         <Card className={classes.withPadding} variant="outlined">
             <Typography variant="h6" color="textSecondary">
@@ -110,6 +111,7 @@ function BirdsView({cameras}) {
 function Charts({cameras}) {
     const classes = useStyle();
     const [data, setData] = useState(undefined)
+    const [heatmapDetections, setHeatmapDetections] = useState(undefined);
 
     function update() {
         const headers = {'Cache-Control': 'no-store'};
@@ -118,15 +120,25 @@ function Charts({cameras}) {
         }
         const url = `${cameras[0]['storage_host']}/static/data/${cameras[0]['id']}/objects_log/${new Date().toISOString().slice(0, 10)}.csv`;
         axios.get(url, {headers}).then(response => {
-            let records = Plotly.d3.csv.parse(response.data);
-            let x1 = [], y1 = [], y2 = [], env_score = [];
+            const records = Plotly.d3.csv.parse(response.data);
+            const x1 = [], y1 = [], y2 = [], env_score = [];
+            let detections = [];
+            let lastTimestamp = '';
             records.forEach(function (element) {
+                // Graphs
                 x1.push(element['Timestamp']);
                 y1.push(element['DetectedObjects']);
                 y2.push(element['ViolatingObjects']);
-                env_score.push((element['EnvironmentScore']))
+                env_score.push((element['EnvironmentScore']));
+
+                // Heatmap
+                lastTimestamp = element['Timestamp'];
+                JSON.parse(element['Detections'].replaceAll('\'', '\"')).forEach((detection) => {
+                    detections.push(detection);
+                });
             });
             setData({x1, y1, y2, env_score});
+            setHeatmapDetections(detections);
         })
         // Plotly.d3.csv(, (records) => {
         // })
@@ -155,7 +167,7 @@ function Charts({cameras}) {
                 height: 300,
             }
         })
-    }, [data])
+    }, [data]);
 
     const [pedestriansFigure, setPedestriansFigure] = useState(undefined)
 
@@ -185,7 +197,7 @@ function Charts({cameras}) {
                 height: 300,
             }
         })
-    }, [data])
+    }, [data]);
 
     return (
         <Card variant="outlined" className={classes.withPadding}>
@@ -198,11 +210,96 @@ function Charts({cameras}) {
                             </IconButton>
                             <Plot {...mergeDeepLeft(pedestriansFigure, {layout: {width: width - 20}})}/>
                             <Plot {...mergeDeepLeft(envScoreFigure, {layout: {width: width - 20}})}/>
+                            <Heatmap width={width} aspectRatio={3/4} detections={heatmapDetections} />
                         </React.Fragment>
                     )}
                 </ContainerDimensions>
             ) : ''}
         </Card>
+    );
+}
+
+function Heatmap(props) {
+    const [heatmap, updateHeatmap] = useState(undefined);
+    const [dimensions, updateDimensions] = useState({ width: undefined, height: undefined });
+
+    const updateHeatmapData = (detections) => {
+        if (!heatmap || !dimensions.width || !dimensions.height) return;
+        const heatmapResolutionX = 150;
+        const heatmapResolutionY = Math.floor(heatmapResolutionX * props.aspectRatio);
+        let max = 0;
+        const grid = Array(heatmapResolutionX).fill()
+            .map(() => Array(heatmapResolutionY).fill(0));
+        detections.forEach((detection) => {
+            for (const value of [detection.bbox]) if (value < 0 || value > 1) return;
+            const x = Math.floor((detection.bbox[0] + detection.bbox[2]) * heatmapResolutionX / 2);
+            const y = Math.floor((detection.bbox[1] + detection.bbox[3]) * heatmapResolutionY / 2);
+            grid[x][y] += 1 / (1 + grid[x][y]);
+            if (grid[x][y] > max) max = grid[x][y]; 
+        });
+
+        const points = [];
+        for (let i = 0; i < heatmapResolutionX; i += 1) {
+            for (let j = 0; j < heatmapResolutionY; j += 1) {
+                if (grid[i][j] > 0) {
+                    points.push({
+                        x: i * dimensions.width / heatmapResolutionX,
+                        y: j * dimensions.height / heatmapResolutionY,
+                        value: grid[i][j],
+                    });
+                }
+            }
+        }
+
+        console.log(points);
+        updateHeatmap(heatmap.setData({
+            max,
+            data: points,
+        }));
+    };
+
+    useEffect(() => {
+        if (!heatmap) {
+            const heatmapContainer = document.querySelector('.heatmapjs');
+            setSize(heatmapContainer);
+        }
+    }, []);
+
+    
+    useEffect(() => {
+        if (!props.detections) return;
+        updateHeatmapData(props.detections);
+    }, [props.detections]);
+    
+    useEffect(() => {
+        setSize(document.querySelector('.heatmapjs'), props.width);
+    },[props.width]);
+    
+    const setSize = (container) => {
+        const width = props.width - 35;
+        const aspectRatio = props.aspectRatio;
+        updateDimensions({
+            width: Math.floor(width),
+            height: Math.floor(width * aspectRatio),
+        });
+        container.style.width = `${Math.floor(width)}px`
+        container.style.height = `${Math.floor(width * aspectRatio)}px`
+        if (heatmap) heatmap._renderer.canvas.remove();
+        updateHeatmap(undefined);
+        updateHeatmap(h337.create({
+            container,
+        }));
+    };
+
+    return (
+        <div>
+            <Typography variant="h6" color="textSecondary">
+                Heatmap
+            </Typography>
+            <div className="heatmapjs" style={{height:'1000px',width:'100%'}}>
+                <img /*src={ TODO: Get frame from video to show as background }*/ style={{height:'100%',width:'100%'}}/>
+            </div>
+        </div>
     );
 }
 
@@ -213,7 +310,6 @@ export default function Live() {
     useEffect(() => {
         axios.get('/api/cameras').then(response => setCameras(response.data))
     }, []);
-
     return (
         <Grid container spacing={3}>
             <Grid item xs={12} md={7}>

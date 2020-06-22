@@ -1,5 +1,6 @@
 import time
 
+LOG_FORMAT_VERSION = "1.0"
 
 class Logger:
     """logger layer to build a logger and pass data to it for logging
@@ -45,7 +46,8 @@ class Logger:
         """
 
         if time.time() - self.submited_time > self.time_interval:
-            self.logger.update(objects_list, distances)
+            objects = self.format_objects(objects_list)
+            self.logger.update(objects, distances, version=LOG_FORMAT_VERSION)
             self.submited_time = time.time()
             # For Logger instance from loggers/csv_logger
             # region
@@ -53,3 +55,20 @@ class Logger:
             # self.frame_number += 1
             # end region
 
+    def format_objects(self, objects_list):
+        """ Format the attributes of the objects in a way ready to be saved 
+            
+            Args:
+                objects_list: a list of dictionary where each dictionary stores information of an object (person) in a frame.
+        """
+        objects = []
+        for obj_dict in objects_list:
+            obj = {}
+            # TODO: Get 3D position of objects
+            obj["position"] = [0.0, 0.0, 0.0]
+            obj["bbox"] = obj_dict["bbox"]
+            obj["tracking_id"] = obj_dict["id"]
+            # TODO: Add more optional parameters
+
+            objects.append(obj)
+        return objects
