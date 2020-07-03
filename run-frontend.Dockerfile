@@ -1,6 +1,6 @@
 FROM python:3.8-slim
 
-COPY --from=neuralet/smart-social-distancing:frontend-gst /frontend/build /srv/frontend
+COPY --from=neuralet/smart-social-distancing:latest-frontend /frontend/build /srv/frontend
 
 COPY ui/requirements.txt /ui/
 WORKDIR /ui

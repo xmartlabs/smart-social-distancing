@@ -1,7 +1,8 @@
 import time
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
 import uvicorn
 import os
 
@@ -25,6 +26,9 @@ class ProcessorAPI:
         # Create and return a fastapi instance
         app = FastAPI()
 
+        class Config(BaseModel):
+            video_path: str
+
         if os.environ.get('DEV_ALLOW_ALL_ORIGINS', False):
             # This option allows React development server (which is served on another port, like 3000) to proxy requests
             # to this server.
@@ -34,6 +38,12 @@ class ProcessorAPI:
             app.add_middleware(CORSMiddleware, allow_origins='*', allow_credentials=True, allow_methods=['*'],
                                allow_headers=['*'])
         app.mount("/static", StaticFiles(directory="/repo/data/processor/static"), name="static")
+
+        @app.put("/config")
+        async def update_config(config: Config):
+            if config.video_path == 'error':
+                raise HTTPException(status_code=400, detail="video_path is invalid")
+            return {'config': config}
 
         return app
 

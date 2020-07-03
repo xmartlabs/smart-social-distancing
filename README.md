@@ -74,6 +74,12 @@ docker load -i "frontend_image.tar"
 rm frontend_image.tar
 ```
 
+**Build the run-frontend image**
+```
+docker build -f run-frontend.Dockerfile -t "neuralet/smart-social-distancing:latest-web-gui" .
+docker run -it -p HOST_PORT_FRONTEND:8000 --rm  neuralet/smart-social-distancing:latest-web-gui 
+```
+
 **Run on Jetson Nano**
 * You need to have JetPack 4.3 installed on your Jetson Nano.
 
@@ -99,7 +105,7 @@ docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/r
 docker build -f jetson-tx2.Dockerfile -t "neuralet/smart-social-distancing:latest-jetson-tx2" .
 
 # 3) Run Docker container:
-docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-jetson-tx2
+docker run -it --runtime nvidia --privileged -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-jetson-tx2
 ```
 
 **Run on Coral Dev Board**
@@ -107,7 +113,7 @@ docker run -it --runtime nvidia --privileged -p HOST_PORT:8000 -v "$PWD/data":/r
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f coral-dev-board.Dockerfile -t "neuralet/smart-social-distancing:latest-coral-dev-board" .
 # 2) Run Docker container:
-docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-coral-dev-board
+docker run -it --privileged -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-coral-dev-board
 ```
 
 **Run on AMD64 node with a connected Coral USB Accelerator**
@@ -115,7 +121,7 @@ docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f amd64-usbtpu.Dockerfile -t "neuralet/smart-social-distancing:latest-amd64" .
 # 2) Run Docker container:
-docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-amd64
+docker run -it --privileged -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-amd64
 ```
 
 **Run on x86**
@@ -123,7 +129,7 @@ docker run -it --privileged -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f x86.Dockerfile -t "neuralet/smart-social-distancing:latest-x86_64" .
 # 2) Run Docker container:
-docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-x86_64
+docker run -it -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-x86_64
 ```
 
 **Run on x86 using OpenVino**
@@ -134,7 +140,7 @@ docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f x86-openvino.Dockerfile -t "neuralet/smart-social-distancing:latest-x86_64_openvino" .
 # 2) Run Docker container:
-docker run -it -p HOST_PORT:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-x86_64_openvino
+docker run -it -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data neuralet/smart-social-distancing:latest-x86_64_openvino
 ```
 
 ### Configurations
