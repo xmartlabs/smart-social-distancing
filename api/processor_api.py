@@ -1,8 +1,9 @@
 import time
-from fastapi import FastAPI, HTTPException
+from typing import Optional
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 import os
 
@@ -16,18 +17,22 @@ class ProcessorAPI:
         is possible by calling get_section_dict method.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, message_queue):
         self.config = config
         self._host = self.config.get_section_dict("App")["Host"]
         self._port = int(self.config.get_section_dict("App")["Port"])
+        self.message_queue = message_queue
         self.app = self.create_fastapi_app()
 
     def create_fastapi_app(self):
         # Create and return a fastapi instance
         app = FastAPI()
 
+        class AppConfig(BaseModel):
+            VideoPath: Optional[str] = Field(None, example='/repo/data/TownCentreXVID.avi')
+
         class Config(BaseModel):
-            video_path: str
+            App: AppConfig
 
         if os.environ.get('DEV_ALLOW_ALL_ORIGINS', False):
             # This option allows React development server (which is served on another port, like 3000) to proxy requests
@@ -40,9 +45,12 @@ class ProcessorAPI:
         app.mount("/static", StaticFiles(directory="/repo/data/processor/static"), name="static")
 
         @app.put("/config")
-        async def update_config(config: Config):
-            if config.video_path == 'error':
-                raise HTTPException(status_code=400, detail="video_path is invalid")
+        async def update_config(config: Config, save_file: Optional[bool] = Header(False)):
+            self.message_queue.put({
+                'action': 'update_config',
+                'options': {'save_file': save_file},
+                'data': config.dict(exclude_unset=True, exclude_defaults=True, exclude_none=True)
+            })
             return {'config': config}
 
         return app

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import argparse
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 import threading
 from libs.config_engine import ConfigEngine
 import logging
@@ -8,7 +8,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def start_engine(config, video_path):
+def start_engine(config):
+    video_path = config.get_section_dict("App").get("VideoPath", None)
     if video_path:
         from libs.core import Distancing as CvEngine
         engine = CvEngine(config)
@@ -17,28 +18,44 @@ def start_engine(config, video_path):
         logger.warning('Skipping CVEngine as video_path is not set in config file')
 
 
-def start_api(config):
+def start_api(config, message_queue):
     from api.processor_api import ProcessorAPI
-    api = ProcessorAPI(config)
+    api = ProcessorAPI(config, message_queue)
     api.start()
 
+def update_config(process_engine, event, config):
+    logger.info("CV Engine restarting.")
+    process_engine.terminate()
+    process_engine.join()
+    config.update_config(event['data'], event['options']['save_file'])
+    process_engine = Process(target=start_engine, args=(config,))
+    process_engine.start()
+    logger.info("CV Engine restarted.")
+    return process_engine
 
 def main(config):
     logging.basicConfig(level=logging.INFO)
     if isinstance(config, str):
         config = ConfigEngine(config)
 
-    video_path = config.get_section_dict("App").get("VideoPath", None)
-    process_engine = Process(target=start_engine, args=(config, video_path,))
-    process_api = Process(target=start_api, args=(config,))
+
+    process_engine = Process(target=start_engine, args=(config,))
+    message_queue = Queue()
+    process_api = Process(target=start_api, args=(config, message_queue))
 
     process_api.start()
     process_engine.start()
     logger.info("Services Started.")
 
-    forever = threading.Event()
     try:
-        forever.wait()
+        # Wait for messages
+        while True:
+            event = message_queue.get()
+            if event is None:
+                break
+            if event['action'] == 'update_config':
+                process_engine = update_config(process_engine, event, config)
+
     except KeyboardInterrupt:
         logger.info("Received interrupt. Terminating...")
 
