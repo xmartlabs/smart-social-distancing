@@ -2,10 +2,10 @@ import time
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from api.models.config_keys import *
 import uvicorn
 import os
+
 
 class ProcessorAPI:
     """
@@ -27,12 +27,6 @@ class ProcessorAPI:
     def create_fastapi_app(self):
         # Create and return a fastapi instance
         app = FastAPI()
-
-        class AppConfig(BaseModel):
-            VideoPath: Optional[str] = Field(None, example='/repo/data/TownCentreXVID.avi')
-
-        class Config(BaseModel):
-            App: AppConfig
 
         if os.environ.get('DEV_ALLOW_ALL_ORIGINS', False):
             # This option allows React development server (which is served on another port, like 3000) to proxy requests

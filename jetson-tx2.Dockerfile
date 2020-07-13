@@ -86,6 +86,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fastapi \
         pycuda \
         uvicorn \
+        pyhumps \
     && apt-get purge -y \
         pkg-config \
     && apt-get autoremove -y

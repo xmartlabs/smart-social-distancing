@@ -87,6 +87,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y \
         build-essential \
         python3-dev \
+        pyhumps \
     && apt-get autoremove -y
 
 ENTRYPOINT ["python3", "neuralet-distancing.py"]

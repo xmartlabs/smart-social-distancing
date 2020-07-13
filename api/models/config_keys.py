@@ -1,0 +1,24 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+from humps import decamelize
+
+def to_snake(string):
+    return decamelize(string)
+
+
+class SnakeModel(BaseModel):
+  class Config:
+      alias_generator = to_snake
+      allow_population_by_field_name = True
+
+
+class AppConfig(SnakeModel):
+    VideoPath: Optional[str] = Field(None, example='/repo/data/TownCentreXVID.avi')
+    Host: Optional[str] = Field(None, example='0.0.0.0')
+    Port: Optional[str] = Field(None, example='8000')
+    Resolution: Optional[str] = Field(None, example='640,480')
+    Encoder: Optional[str] = Field(None, example='videoconvert ! video/x-raw,format=I420 ! x264enc speed-preset=ultrafast')
+
+
+class Config(SnakeModel):
+    App: Optional[AppConfig]

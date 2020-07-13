@@ -70,6 +70,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         aiofiles \
         fastapi \
         uvicorn \
+        pyhumps \
     && apt-get purge -y \
         python3-dev \
     && apt-get autoremove -y
@@ -79,6 +80,7 @@ ENTRYPOINT ["python3", "neuralet-distancing.py"]
 CMD ["--config", "config-x86.ini"]
 WORKDIR /repo
 EXPOSE 8000
+ENV DEV_ALLOW_ALL_ORIGINS=True
 
 COPY --from=neuralet/smart-social-distancing:latest-frontend /frontend/build /srv/frontend
 
