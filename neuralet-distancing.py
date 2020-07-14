@@ -24,7 +24,6 @@ def start_api(config, message_queue):
     api.start()
 
 def update_config(process_engine, event, config):
-    logger.info(event['data'])
     logger.info("Restarting CV Engine.")
     process_engine.terminate()
     process_engine.join()

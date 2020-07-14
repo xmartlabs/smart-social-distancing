@@ -40,8 +40,8 @@ class ProcessorAPI:
 
         @app.put("/config")
         async def update_config(config_request: ConfigRequest):
+            save_file = config_request.save_file
             config_request = config_request.dict(exclude_unset=True, exclude_none=True)
-            save_file = config_request['save_file']
             config = config_request['config']
             self.message_queue.put({
                 'action': 'update_config',
