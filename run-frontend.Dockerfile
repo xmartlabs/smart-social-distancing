@@ -11,6 +11,7 @@ COPY libs/config_engine.py /ui/
 COPY config-frontend.ini /ui/
 
 EXPOSE 8000
+ENV DEV_ALLOW_ALL_ORIGINS=True
 
 ENTRYPOINT ["python3", "web_gui.py"]
 CMD ["--config", "config-frontend.ini"]

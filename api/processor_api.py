@@ -1,5 +1,4 @@
 import time
-from typing import Optional
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
 from api.models.config_keys import *
