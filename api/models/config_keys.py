@@ -20,3 +20,8 @@ class AppConfig(SnakeModel):
 
 class Config(SnakeModel):
     App: Optional[AppConfig]
+
+
+class ConfigRequest(BaseModel):
+    save_file: Optional[bool] = Field(False)
+    config: Config

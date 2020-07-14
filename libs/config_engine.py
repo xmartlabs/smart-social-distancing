@@ -49,7 +49,7 @@ class ConfigEngine:
     def save(self, path):
         self.lock.acquire()
         try:
-            file_obj = open(path, "w")
+            file_obj = open(path, "w+")
             self.config.write(file_obj)
             file_obj.close()
         finally:

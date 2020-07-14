@@ -39,13 +39,16 @@ class ProcessorAPI:
         app.mount("/static", StaticFiles(directory="/repo/data/processor/static"), name="static")
 
         @app.put("/config")
-        async def update_config(config: Config, save_file: Optional[bool] = Header(False)):
+        async def update_config(config_request: ConfigRequest):
+            config_request = config_request.dict(exclude_unset=True, exclude_none=True)
+            save_file = config_request['save_file']
+            config = config_request['config']
             self.message_queue.put({
                 'action': 'update_config',
                 'options': {'save_file': save_file},
-                'data': config.dict(exclude_unset=True, exclude_defaults=True, exclude_none=True)
+                'data': config
             })
-            return {'config': config}
+            return config_request
 
         return app
 
