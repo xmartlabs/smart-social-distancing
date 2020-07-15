@@ -140,12 +140,12 @@ docker run -it -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data -v "$PWD/config-x
 # 1) Build Docker image (This step is optional, you can skip it if you want to pull the container from neuralet dockerhub)
 docker build -f x86-openvino.Dockerfile -t "neuralet/smart-social-distancing:latest-x86_64_openvino" .
 # 2) Run Docker container:
-docker run -it -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data "$PWD/config-x86-openvino.ini":/repo/config-x86-openvino.ini neuralet/smart-social-distancing:latest-x86_64_openvino
+docker run -it -p HOST_PORT_API:8000 -v "$PWD/data":/repo/data -v "$PWD/config-x86-openvino.ini":/repo/config-x86-openvino.ini neuralet/smart-social-distancing:latest-x86_64_openvino
 ```
 
 ### Configurations
 You can read and modify the configurations in `config-jetson.ini` file for Jetson Nano / TX2 and `config-skeleton.ini` file for Coral.
-Passing the config file to `docker run` as volume allow for the config to be written inside the docker container
+Passing the config file to `docker run` as volume allows for the config to be written inside the docker container
 
 Under the `[Detector]` section, you can modify the `Min score` parameter to define the person detection threshold. You can also change the distance threshold by altering the value of `DistThreshold`.
 
