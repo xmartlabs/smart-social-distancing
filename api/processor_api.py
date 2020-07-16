@@ -1,14 +1,16 @@
 import time
-import numpy as np
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, status, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from api.models.config_keys import *
 import uvicorn
 import os
-import cv2 as cv
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class ProcessorAPI:
     """
@@ -27,31 +29,16 @@ class ProcessorAPI:
         self.message_queue = message_queue
         self.app = self.create_fastapi_app()
 
-    @staticmethod
-    def validate_video_path(video_uri):
-        input_cap = cv.VideoCapture(video_uri)
-
-        if input_cap.isOpened() :
-            _, cv_image = input_cap.read()
-            if np.shape(cv_image) == ():
-                return False
-        else:
-            logger.error(f'failed to load video {video_uri}')
-            return False
-
-        input_cap.release()
-        return True
-
-    def validate_config(self, config):
-        if 'App' in config.keys():
-            if ('VideoPath' in config['App']) and (not self.validate_video_path(config['App']['VideoPath'])):
-                return [False, 'video_path is invalid']
-
-        return [True, '']
-
     def create_fastapi_app(self):
         # Create and return a fastapi instance
         app = FastAPI()
+
+        @app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(request: Request, exc: RequestValidationError):
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+            )
 
         if os.environ.get('DEV_ALLOW_ALL_ORIGINS', False):
             # This option allows React development server (which is served on another port, like 3000) to proxy requests
@@ -68,10 +55,6 @@ class ProcessorAPI:
             save_file = config_request.save_file
             config_request = config_request.dict(exclude_unset=True, exclude_none=True)
             config = config_request['config']
-
-            is_valid, message = self.validate_config(config)
-            if not is_valid:
-                raise HTTPException(status_code=400, detail=message)
 
             self.message_queue.put({
                 'action': 'update_config',
