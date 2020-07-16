@@ -33,7 +33,7 @@ class AppConfig(SnakeModel):
 
         input_cap.release()
         if error:
-            raise ValueError('Failed to load video. The video URI is valid')
+            raise ValueError('Failed to load video. The video URI is not valid')
         else:
             return video_uri
 
