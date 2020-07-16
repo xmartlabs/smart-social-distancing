@@ -1,10 +1,14 @@
 import time
+import numpy as np
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
 from api.models.config_keys import *
 import uvicorn
 import os
+import cv2 as cv
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ProcessorAPI:
     """
@@ -22,6 +26,28 @@ class ProcessorAPI:
         self._port = int(self.config.get_section_dict("App")["Port"])
         self.message_queue = message_queue
         self.app = self.create_fastapi_app()
+
+    @staticmethod
+    def validate_video_path(video_uri):
+        input_cap = cv.VideoCapture(video_uri)
+
+        if input_cap.isOpened() :
+            _, cv_image = input_cap.read()
+            if np.shape(cv_image) == ():
+                return False
+        else:
+            logger.error(f'failed to load video {video_uri}')
+            return False
+
+        input_cap.release()
+        return True
+
+    def validate_config(self, config):
+        if 'App' in config.keys():
+            if ('VideoPath' in config['App']) and (not self.validate_video_path(config['App']['VideoPath'])):
+                return [False, 'video_path is invalid']
+
+        return [True, '']
 
     def create_fastapi_app(self):
         # Create and return a fastapi instance
@@ -42,6 +68,11 @@ class ProcessorAPI:
             save_file = config_request.save_file
             config_request = config_request.dict(exclude_unset=True, exclude_none=True)
             config = config_request['config']
+
+            is_valid, message = self.validate_config(config)
+            if not is_valid:
+                raise HTTPException(status_code=400, detail=message)
+
             self.message_queue.put({
                 'action': 'update_config',
                 'options': {'save_file': save_file},
