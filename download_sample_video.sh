@@ -1,1 +1,3 @@
-wget http://www.robots.ox.ac.uk/ActiveVision/Research/Projects/2009bbenfold_headpose/Datasets/TownCentreXVID.avi -O data/TownCentreXVID.avi
+#!/usr/bin/env bash
+
+wget -nc https://bitbucket.org/merayxu/multiview-object-tracking-dataset/raw/21fcf9ca90b77797e18ed13d0127877394b3dbc1/CAMPUS/Garden1/view-IP1.mp4 -O data/gard1-4.mp4
