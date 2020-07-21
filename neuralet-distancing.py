@@ -38,7 +38,6 @@ def main(config):
     if isinstance(config, str):
         config = ConfigEngine(config)
 
-
     process_engine = Process(target=start_engine, args=(config,))
     message_queue = Queue()
     process_api = Process(target=start_api, args=(config, message_queue))
