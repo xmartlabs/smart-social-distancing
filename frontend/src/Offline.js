@@ -58,7 +58,7 @@ function VideoForm() {
     const [fileSelected, setFileSelected] = useState(true);
     const [file, setFile] = useState(null);
     const [vidURL, setVidURL] = useState('');
-    const [videoSent, setVideoSent] = useState(false);
+    const [sending, setSending] = useState(false);
     const [error, setError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('huehuehue');
 
@@ -77,44 +77,61 @@ function VideoForm() {
     };
     const handleURLFieldKey = (event) => {
         if (event.key !== 'Enter') return;
-        handleSubmit();
+        sendURL();
     };
     const handleURLFieldChange = (event) => {
         setVidURL(event.target.value);
     };
-    
-    const handleSubmit = () => {
-        if (fileSelected) {
-            if (!file) {
-                setError(true);
-                setErrorMessage('No file provided.');
-                return;
-            }
-            //TODO: send file
-        } else {
-            if (!vidURL || vidURL === '') {
-                setError(true);
-                setErrorMessage('No URI provided.');
-                return;
-            }
-            //TODO: send url
+
+    const sendFile = async () => {
+        if (!file) {
+            setError(true);
+            setErrorMessage('No file provided.');
+            return;
         }
+        await setError(false);
+        await setSending(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 3000)); //TODO: send file
+        } catch (error) {
+            setError(true);
+            setErrorMessage('Failed to send video.');
+            return;
+        }
+        setSending(false);
         setError(false);
-        setVideoSent(true);
     };
 
+    const sendURL = async () => {
+        if (!vidURL || vidURL === '') {
+            setError(true);
+            setErrorMessage('No URI provided.');
+            return;
+        }
+        await setError(false);
+        await setSending(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 3000)); //TODO: send url
+        } catch (error) {
+            setError(true);
+            setErrorMessage('Failed to send URI.');
+            return;
+        }
+        setSending(false);
+    }
+
     useEffect(() => {
-        if (!videoSent) return;
-        let intervalId = setInterval(() => {setVideoSent(false)}, 3000);
+        if (!sending) return;
+        let intervalId = setInterval(() => {setSending(false)}, 3000);
         return () => clearInterval(intervalId);
-    }, [videoSent])
+    }, [sending])
     
     return (
         <Grid className={classes.video_form}>
-            { videoSent && <div className={classes.loading_background} /> }
-            { videoSent && <CircularProgress className={classes.loading_spinner} /> }
+            { sending && <div className={classes.loading_background} /> }
+            { sending && <CircularProgress className={classes.loading_spinner} /> }
             <Typography variant="h6" color="textSecondary">
-                Send us a video...
+                Select a video to analyze offline:
             </Typography>
             <Grid className={classes.video_form}>
                 <Grid container className={classes.video_option}>
@@ -136,8 +153,8 @@ function VideoForm() {
                     />
                 </Grid>
             </Grid>
-            <Button type="button" variant="contained" color="primary" className={classes.button} onClick={handleSubmit}>
-                Submit
+            <Button type="button" variant="contained" color="primary" className={classes.button} onClick={fileSelected ? sendFile : sendURL}>
+                Send
             </Button>
             { error && <Typography variant="p">&nbsp;&nbsp;{errorMessage}</Typography>}
         </Grid>
