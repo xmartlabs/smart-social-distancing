@@ -38,6 +38,7 @@ echo ''
 echo "Please select your device from the following list:"
 select device in $DEVICES
 do
+  # TODO: LANTHORN-4: Create run_backend.sh file for the specified device. Add it to .gitignore
   case $device in
     jetson_nano)
         . download_jetson_nano_trt.sh
