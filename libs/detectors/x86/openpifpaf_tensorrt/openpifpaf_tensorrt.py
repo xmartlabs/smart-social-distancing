@@ -53,7 +53,7 @@ class Detector:
         self.config = config
         self.fps = None
         self.w, self.h, _ = [int(i) for i in self.config.get_section_dict('Detector')['ImageSize'].split(',')]
-        self.trt_logger = trt.Logger(trt.Logger.INFO)
+        self.trt_logger = trt.Logger(trt.Logger.INTERNAL_ERROR)
         self.model_input_size = (self.w, self.h)
         self.device = None  # enter your Gpu id here
         self.cuda_context = None 

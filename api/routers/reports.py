@@ -2,7 +2,7 @@ import os
 import tempfile
 
 from datetime import date, timedelta
-from fastapi import APIRouter, Query, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Query, HTTPException, BackgroundTasks, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -106,7 +106,7 @@ class MostViolationsCamera(BaseModel):
 
 def validate_dates(from_date, to_date):
     if from_date > to_date:
-        raise HTTPException(status_code=400, detail="Invalid range of dates")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid range of dates")
 
 
 def validate_camera_existence(camera_id: str):
@@ -184,7 +184,7 @@ def get_heatmap(camera_id: str,
     if report_type in ["violations", "detections"]:
         return reports.heatmap(camera_id, from_date, to_date, report_type)
     else:
-        raise HTTPException(status_code=400, detail="Invalid report_type")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid report_type")
 
 
 @reports_router.get("/{camera_id}/peak_hour_violations", response_model=PeakHourViolationsReport)

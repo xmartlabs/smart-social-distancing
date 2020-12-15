@@ -26,31 +26,32 @@ class RawDataLogger:
         violating_objects = post_processing_data.get("violating_objects", [])
         # Save a screenshot only if the period is greater than 0, a violation is detected, and the minimum period
         # has occured
-        if time.time() - self.submited_time > self.time_interval:
-            # Get timeline which is used for as Timestamp
-            now = datetime.now()
-            current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-            # Process objects
-            objects_formated = self.format_objects(objects)
-            # Get unique objects that are in close contact
-            violating_objects_index_list = list(set(itertools.chain(*violating_objects)))
-            # Get the number of violating objects (people)
-            violating_objects_count = len(violating_objects)
-            # Get the number of detected objects (people)
-            detected_objects_count = len(objects)
-            # Get environment score
-            environment_score = mx_environment_scoring_consider_crowd(detected_objects_count, violating_objects_count)
-            self.log_objects(
-                objects_formated,
-                violating_objects,
-                violating_objects_index_list,
-                violating_objects_count,
-                detected_objects_count,
-                environment_score,
-                current_time,
-                version=LOG_FORMAT_VERSION
-            )
-            self.submited_time = time.time()
+        # if time.time() - self.submited_time > self.time_interval:
+        # Get timeline which is used for as Timestamp
+        now = datetime.now()
+        current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+        # Process objects
+        objects_formated = self.format_objects(objects)
+        # Get unique objects that are in close contact
+        violating_objects_index_list = list(set(itertools.chain(*violating_objects)))
+        # Get the number of violating objects (people)
+        violating_objects_count = len(violating_objects)
+        # Get the number of detected objects (people)
+        detected_objects_count = len(objects)
+        # Get environment score
+        environment_score = mx_environment_scoring_consider_crowd(detected_objects_count, violating_objects_count)
+        self.log_objects(
+            objects_formated,
+            violating_objects,
+            violating_objects_index_list,
+            violating_objects_count,
+            detected_objects_count,
+            environment_score,
+            current_time,
+            version=LOG_FORMAT_VERSION,
+            video_time_stamp=post_processing_data["video_time"]
+        )
+        self.submited_time = time.time()
 
     def format_objects(self, objects_list):
         """ Format the attributes of the objects in a way ready to be saved

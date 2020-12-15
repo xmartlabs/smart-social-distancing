@@ -67,6 +67,7 @@ class AreaEngine:
                 with open(os.path.join(camera["file_path"], str(date.today()) + ".csv"), "r") as log:
                     last_log = deque(csv.DictReader(log), 1)[0]
                     log_time = datetime.strptime(last_log["Timestamp"], "%Y-%m-%d %H:%M:%S")
+                    log_video_time = last_log["VideoTimestamp"]
                     # TODO: If the TimeInterval of the Logger is more than 30 seconds this would have to be revised.
                     if (datetime.now() - log_time).total_seconds() < 30:
                         occupancy += int(last_log["DetectedObjects"])
@@ -75,7 +76,7 @@ class AreaEngine:
                         logger.warn(f"Logs aren't being updated for camera {camera['id']} - {camera['name']}")
 
             for l in self.loggers:
-                l.update(active_cameras, {"occupancy": occupancy})
+                l.update(active_cameras, {"occupancy": occupancy, "video_time_stamp": log_video_time})
 
             if (occupancy > self.occupancy_threshold
                     and time.time() - self.last_notification_time > self.occupancy_sleep_time_interval):

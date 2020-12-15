@@ -33,20 +33,17 @@ class FileSystemLogger(RawDataLogger):
             cv.imwrite(f'{self.screenshot_path}/default.jpg', cv_image)
 
     def log_objects(self, objects, violating_objects, violating_objects_index_list, violating_objects_count,
-                    detected_objects_cout, environment_score, time_stamp, version):
+                    detected_objects_cout, environment_score, time_stamp, version, video_time_stamp):
         file_name = str(date.today())
         file_path = os.path.join(self.objects_log_directory, file_name + ".csv")
         file_exists = os.path.isfile(file_path)
         with open(file_path, "a") as csvfile:
-            headers = ["Version", "Timestamp", "DetectedObjects", "ViolatingObjects",
-                       "EnvironmentScore", "Detections", 'ViolationsIndexes']
+            headers = ["VideoTimestamp", "DetectedObjects"]
             writer = csv.DictWriter(csvfile, fieldnames=headers)
             if not file_exists:
                 writer.writeheader()
             writer.writerow(
-                {"Version": version, "Timestamp": time_stamp, "DetectedObjects": detected_objects_cout,
-                 "ViolatingObjects": violating_objects_count, "EnvironmentScore": environment_score,
-                 "Detections": str(objects), "ViolationsIndexes": str(violating_objects_index_list)})
+                {"VideoTimestamp": video_time_stamp, "DetectedObjects": detected_objects_cout})
 
     def update(self, cv_image, objects, post_processing_data, fps):
         violating_objects = post_processing_data.get("violating_objects", [])

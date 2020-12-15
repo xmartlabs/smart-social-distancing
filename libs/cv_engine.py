@@ -16,7 +16,7 @@ class CvEngine:
 
     def __init__(self, config, source, live_feed_enabled=True):
         self.config = config
-        self.live_feed_enabled = live_feed_enabled
+        self.live_feed_enabled = False
         self.resolution = tuple([int(i) for i in self.config.get_section_dict('App')['Resolution'].split(',')])
 
         # Init detector, tracker and classifier
@@ -87,6 +87,7 @@ class CvEngine:
 
     def process_video(self, video_uri):
         input_cap = cv.VideoCapture(video_uri)
+        real_fps = input_cap.get(cv.CAP_PROP_FPS)
         fps = max(25, input_cap.get(cv.CAP_PROP_FPS))
         if (input_cap.isOpened()):
             logger.info(f'opened video {video_uri}')
@@ -102,15 +103,18 @@ class CvEngine:
             source_logger.start_logging(fps)
 
         frame_num = 0
+        video_frame = 0
         last_processed_time = time.time()
         while input_cap.isOpened() and self.running_video:
             _, cv_image = input_cap.read()
+            video_frame += 1
             if np.shape(cv_image) != ():
-                if not self.live_feed_enabled and (time.time() - last_processed_time < self.log_time_interval):
+                if not self.live_feed_enabled and ((video_frame % int(real_fps)) != 0):
                     continue
                 cv_image, objects, post_processing_data = self.__process(cv_image)
                 last_processed_time = time.time()
                 frame_num += 1
+                post_processing_data["video_time"] = int(video_frame//real_fps)
                 if frame_num % 100 == 1:
                     logger.info(f'processed frame {frame_num} for {video_uri}')
                 for source_logger in self.loggers:

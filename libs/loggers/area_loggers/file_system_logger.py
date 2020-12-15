@@ -21,11 +21,12 @@ class FileSystemLogger:
         file_exists = os.path.isfile(file_path)
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+        video_time_stamp = area_data["video_time_stamp"]
 
         with open(file_path, "a") as csvfile:
-            headers = ["Timestamp", "Cameras", "Occupancy"]
+            headers = ["Timestamp", "VideoTimestamp", "Cameras", "Occupancy"]
             writer = csv.DictWriter(csvfile, fieldnames=headers)
             if not file_exists:
                 writer.writeheader()
             writer.writerow(
-                {"Timestamp": current_time, "Cameras": cameras, "Occupancy": area_data["occupancy"]})
+                {"Timestamp": current_time, "VideoTimestamp": video_time_stamp, "Cameras": cameras, "Occupancy": area_data["occupancy"]})
